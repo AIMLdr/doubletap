@@ -2,7 +2,7 @@
 
 DoubleTap is designed to locate, monitor, and manage large language model (LLM) processes on my Linux x64 system running from a bash shell. It will detect running LLM instance from port default 11434 and name to hunt and kill llama including ollama. Following termination Shepherd Daemon boot option y/N 
 
-# doubletap - Local LLM Process Management and Security Tool
+# doubletap - Local LLM Process Management and Network Tool
 ```txt
 Purpose: Emergency termination of resource-hungry LLM processes and associated services
 Use Case: When local LLMs consume excessive RAM or maintain unwanted network connections
