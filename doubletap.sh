@@ -189,4 +189,40 @@ if [[ "$port" != "11434" ]]; then
     fi
 fi
 
+echo -e "${YELLOW}=== UFW Ollama Security Configuration ===${NC}"
+
+# Check if UFW is installed
+if ! command -v ufw >/dev/null 2>&1; then
+    echo -e "${RED}Error: UFW is not installed${NC}"
+    echo -e "${YELLOW}Install with: sudo apt install ufw${NC}"
+    exit 1
+fi
+
+# Check current UFW status
+echo -e "${YELLOW}Checking UFW status...${NC}"
+if ! sudo ufw status | grep -q "Status: active"; then
+    echo -e "${YELLOW}Enabling UFW...${NC}"
+    sudo ufw enable
+    sleep 2
+fi
+
+echo -e "${YELLOW}Configuring Ollama UFW rules...${NC}"
+
+# Allow localhost access
+echo -e "${GREEN}Allowing localhost access to port 11434...${NC}"
+sudo ufw allow in from 127.0.0.1 to any port 11434
+sudo ufw allow out from any to 127.0.0.1 port 11434
+
+# Block external access
+echo -e "${GREEN}Blocking external access to port 11434...${NC}"
+sudo ufw deny in to any port 11434
+sudo ufw deny out to any port 11434
+
+# Verify rules
+echo -e "${YELLOW}=== UFW Rules Verification ===${NC}"
+sudo ufw status verbose
+
+echo -e "${GREEN}=== Configuration Complete ===${NC}"
+echo -e "${YELLOW}! Ollama now restricted to localhost only${NC}"
 echo -e "${GREEN}=== Operation Complete ===${NC}"
+
