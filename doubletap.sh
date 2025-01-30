@@ -1,6 +1,6 @@
 # doubletap (c) 2025 Gregory L. Magnusson
 # find and kill llama with custom port kill
-# ollama shepherd boot control
+# ollama shepherd boot y/N control
 
 #!/bin/bash
 
@@ -18,7 +18,7 @@ handle_ollama_daemon() {
     echo -e "${YELLOW}=== Checking Ollama Service ===${NC}"
     if systemctl list-unit-files | grep -q ollama; then
         if systemctl is-active --quiet ollama; then
-            echo -e "${YELLOW}Stopping Ollama service...${NC}"
+            echo -e "${YELLOW}stopping Ollama service...${NC}"
             sudo systemctl stop ollama
             sleep 2
         fi
@@ -64,7 +64,7 @@ if [[ -n "$lsof_output" ]]; then
         is_llm_process=true
         echo -e "${GREEN}confirmed LLM process: $process_name${NC}"
     else
-        echo -e "${YELLOW}Warning: unknown LLM service${NC}"
+        echo -e "${YELLOW}warning: unknown LLM service${NC}"
     fi
     llm_found=true
 else
@@ -161,31 +161,31 @@ if systemctl list-unit-files | grep -q ollama; then
         echo -e "${GREEN}✓ Ollama disabled at boot${NC}"
     else
         sudo systemctl enable ollama
-        echo -e "${YELLOW}! Warning: Ollama will run at boot${NC}"
-        echo -e "${YELLOW}! Use 'sudo systemctl disable ollama' to disable manually${NC}"
+        echo -e "${YELLOW}! warning: Ollama running at boot${NC}"
+        echo -e "${YELLOW}! use 'sudo systemctl disable ollama' to disable manually${NC}"
     fi
 fi
 
 # Final verification
 echo -e "${YELLOW}=== Final System Check ===${NC}"
 if ! pgrep -x "ollama" > /dev/null; then
-    echo -e "${GREEN}✓ No Ollama processes running${NC}"
+    echo -e "${GREEN}✓ no Ollama processes running${NC}"
 else
-    echo -e "${RED}! Ollama processes still detected${NC}"
+    echo -e "${RED}! warning: ollama processes detected${NC}"
 fi
 
 if ! sudo lsof -i :$port >/dev/null 2>&1; then
     echo -e "${GREEN}✓ Port $port is clear${NC}"
 else
-    echo -e "${RED}! Port $port is still in use${NC}"
+    echo -e "${RED}! port $port is in use${NC}"
 fi
 
 # Additional check for default Ollama port if custom port was used
 if [[ "$port" != "11434" ]]; then
     if ! sudo lsof -i :11434 >/dev/null 2>&1; then
-        echo -e "${GREEN}✓ Default Ollama port 11434 is clear${NC}"
+        echo -e "${GREEN}✓ default Ollama port 11434 is clear${NC}"
     else
-        echo -e "${RED}! Warning: Default Ollama port 11434 still in use${NC}"
+        echo -e "${RED}! warning: Default Ollama port 11434 still in use${NC}"
     fi
 fi
 
