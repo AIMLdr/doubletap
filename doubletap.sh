@@ -1,5 +1,6 @@
 # doubletap (c) 2025 Gregory L. Magnusson
 # find and kill llama with custom port kill
+# ollama shepherd boot control
 
 #!/bin/bash
 
