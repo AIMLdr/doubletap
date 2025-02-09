@@ -19,7 +19,7 @@ handle_ollama_daemon() {
     echo -e "${YELLOW}=== Checking Ollama Service ===${NC}"
     if systemctl list-unit-files | grep -q ollama; then
         if systemctl is-active --quiet ollama; then
-            echo -e "${YELLOW}stopping Ollama service...${NC}"
+            echo -e "${YELLOW}stopping Ollama service...sudo systemctl stop ollama${NC}"
             sudo systemctl stop ollama
             sleep 2
         fi
@@ -95,7 +95,7 @@ if [[ "$llm_found" == true ]]; then
         read -p "Process doesn't appear to be an LLM. Are you sure you want to proceed? (y/N) " proceed
         proceed=$(echo "$proceed" | tr '[:upper:]' '[:lower:]')
         if [[ "$proceed" != "y" ]]; then
-            echo "Process check cancelled. Continuing with shepherd controls..."
+            echo "Process check cancelled. Continuing with shepherd bootloader control..."
         fi
     fi
 
@@ -124,20 +124,20 @@ if [[ "$llm_found" == true ]]; then
 fi
 
 # Continue with shepherd controls regardless of previous operations
-echo -e "${YELLOW}=== Checking System for Ollama Processes ===${NC}"
+echo -e "${YELLOW}=== Shephard checking system for Ollama process ===${NC}"
 
 # Check for any ollama processes
 if pgrep -x "ollama" > /dev/null; then
-    echo -e "${YELLOW}Found running Ollama processes${NC}"
+    echo -e "${YELLOW}Found running Ollama process${NC}"
     read -p "Terminate all Ollama processes? (y/N) " kill_all
     if [[ "${kill_all,,}" == "y" ]]; then
-        echo -e "${YELLOW}Terminating all Ollama processes...${NC}"
+        echo -e "${YELLOW}kill all Ollama process...${NC}"
         sudo pkill -9 ollama
         sleep 1
         if ! pgrep -x "ollama" > /dev/null; then
-            echo -e "${GREEN}✓ All Ollama processes terminated${NC}"
+            echo -e "${GREEN}✓ Ollama has been terminated${NC}"
         else
-            echo -e "${RED}! Some Ollama processes may still be running${NC}"
+            echo -e "${RED}! warning: Ollama processes may still be running${NC}"
         fi
     fi
 fi
@@ -162,7 +162,7 @@ if systemctl list-unit-files | grep -q ollama; then
         echo -e "${GREEN}✓ Ollama disabled at boot${NC}"
     else
         sudo systemctl enable ollama
-        echo -e "${YELLOW}! warning: Ollama running at boot${NC}"
+        echo -e "${YELLOW}! warning: Ollama runs at boot${NC}"
         echo -e "${YELLOW}! use 'sudo systemctl disable ollama' to disable manually${NC}"
     fi
 fi
@@ -170,9 +170,9 @@ fi
 # Final verification
 echo -e "${YELLOW}=== Final System Check ===${NC}"
 if ! pgrep -x "ollama" > /dev/null; then
-    echo -e "${GREEN}✓ no Ollama processes running${NC}"
+    echo -e "${GREEN}✓ no Ollama process running${NC}"
 else
-    echo -e "${RED}! warning: ollama processes detected${NC}"
+    echo -e "${RED}! warning: ollama process detected${NC}"
 fi
 
 if ! sudo lsof -i :$port >/dev/null 2>&1; then
@@ -202,28 +202,80 @@ fi
 # Check current UFW status
 echo -e "${YELLOW}Checking UFW status...${NC}"
 if ! sudo ufw status | grep -q "Status: active"; then
-    echo -e "${YELLOW}Enabling UFW...${NC}"
-    sudo ufw enable
-    sleep 2
+    read -p "UFW is not active. Enable UFW firewall? (y/N) " enable_ufw
+    if [[ "${enable_ufw,,}" == "y" ]]; then
+        echo -e "${YELLOW}Enabling UFW...${NC}"
+        sudo ufw enable
+        sleep 2
+    else
+        echo -e "${RED}Warning: UFW remains disabled. Ollama ports may be exposed.${NC}"
+        read -p "Continue with rule configuration anyway? (y/N) " continue_anyway
+        if [[ "${continue_anyway,,}" != "y" ]]; then
+            echo -e "${YELLOW}UFW configuration aborted${NC}"
+            exit 0
+        fi
+    fi
 fi
 
 echo -e "${YELLOW}Configuring Ollama UFW rules...${NC}"
 
-# Allow localhost access
-echo -e "${GREEN}Allowing localhost access to port 11434...${NC}"
-sudo ufw allow in from 127.0.0.1 to any port 11434
-sudo ufw allow out from any to 127.0.0.1 port 11434
+# Ask about localhost configuration
+read -p "Configure Ollama for localhost-only access? (y/N) " configure_localhost
+if [[ "${configure_localhost,,}" == "y" ]]; then
+    echo -e "${GREEN}Configuring localhost access rules...${NC}"
+    
+    # Check for existing rules
+    existing_rules=$(sudo ufw status | grep 11434)
+    if [[ ! -z "$existing_rules" ]]; then
+        echo -e "${YELLOW}Existing Ollama port rules found:${NC}"
+        echo "$existing_rules"
+        read -p "Remove existing rules before continuing? (y/N) " remove_existing
+        if [[ "${remove_existing,,}" == "y" ]]; then
+            sudo ufw delete allow 11434/tcp >/dev/null 2>&1
+            sudo ufw delete deny 11434/tcp >/dev/null 2>&1
+            echo -e "${GREEN}✓ Existing rules removed${NC}"
+        fi
+    fi
 
-# Block external access
-echo -e "${GREEN}Blocking external access to port 11434...${NC}"
-sudo ufw deny in to any port 11434
-sudo ufw deny out to any port 11434
+    # Allow localhost access
+    echo -e "${GREEN}Allowing localhost access to port 11434...${NC}"
+    sudo ufw allow in from 127.0.0.1 to any port 11434
+    sudo ufw allow out from any to 127.0.0.1 port 11434
+
+    # Block external access
+    echo -e "${GREEN}Blocking external access to port 11434...${NC}"
+    sudo ufw deny in to any port 11434
+    sudo ufw deny out to any port 11434
+    
+    echo -e "${GREEN}✓ Localhost-only configuration complete${NC}"
+else
+    read -p "Would you like to allow external access to Ollama? (y/N) " allow_external
+    if [[ "${allow_external,,}" == "y" ]]; then
+        echo -e "${RED}! Warning: Allowing external access may pose security risks${NC}"
+        read -p "Are you sure? (y/N) " confirm_external
+        if [[ "${confirm_external,,}" == "y" ]]; then
+            sudo ufw allow 11434/tcp
+            echo -e "${YELLOW}! External access enabled for Ollama${NC}"
+        fi
+    else
+        echo -e "${GREEN}✓ No changes made to UFW rules${NC}"
+    fi
+fi
 
 # Verify rules
 echo -e "${YELLOW}=== UFW Rules Verification ===${NC}"
 sudo ufw status verbose
 
-echo -e "${GREEN}=== Configuration Complete ===${NC}"
-echo -e "${YELLOW}! Ollama now restricted to localhost only${NC}"
-echo -e "${GREEN}=== Operation Complete ===${NC}"
+# Final UFW status message
+if sudo ufw status | grep -q "Status: active"; then
+    echo -e "${GREEN}✓ UFW is active and configured${NC}"
+    if [[ "${configure_localhost,,}" == "y" ]]; then
+        echo -e "${GREEN}✓ Ollama is restricted to localhost only${NC}"
+    fi
+else
+    echo -e "${RED}! Warning: UFW is not active${NC}"
+    echo -e "${YELLOW}! Use 'sudo ufw enable' to activate firewall${NC}"
+fi
+
+echo -e "${GREEN}=== UFW Configuration Complete ===${NC}"
 
