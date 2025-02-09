@@ -62,6 +62,7 @@ enter a port number within 3 seconds or default :11434<br/>
 requires root privileges for stopping and killing llama<br />
 
 y/N option for liberty with ufw and blocks external llama interaction while maintaining localhost as default<br />
+performs audit<br />
 edit to your specifications
 
 
