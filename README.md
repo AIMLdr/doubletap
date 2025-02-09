@@ -36,20 +36,6 @@ pytorch
 tensorflow
 ```
 
-stops Ollama daemon service if running
-provides custom network port for scanning
-color-coded terminal output
-```sh
- git clone https://github.com/aimldr/doubletap.git
-```
-```sh
-cd doubletap && chmod +x doubletap.sh && ./doubletap.sh
-```
-enter a port number within 3 seconds or default :11434<br/>
-requires root privileges for stopping and killing llama<br />
-
-takes liberty with ufw and blocks external llama interaction while maintaining localhost. edit to your specifications
-
 # Check for any rules allowing external access
 ```bash
 sudo ufw status verbose | grep 11434
@@ -63,6 +49,19 @@ d
 ```bash
 sudo lsof -i :11434
 ```
+
+stops Ollama daemon service if running
+provides custom network port for scanning
+```sh
+ git clone https://github.com/aimldr/doubletap.git
+```
+```sh
+cd doubletap && chmod +x doubletap.sh && ./doubletap.sh
+```
+enter a port number within 3 seconds or default :11434<br/>
+requires root privileges for stopping and killing llama<br />
+
+takes liberty with ufw and blocks external llama interaction while maintaining localhost. edit to your specifications
 
 
 
