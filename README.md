@@ -50,6 +50,20 @@ requires root privileges for stopping and killing llama<br />
 
 takes liberty with ufw and blocks external llama interaction while maintaining localhost. edit to your specifications
 
+# Check for any rules allowing external access
+```bash
+sudo ufw status verbose | grep 11434
+```
+# Check what address Ollama is bound to
+```bash
+sudo netstat -tulpn | grep 11434
+```
+d
+# Verify socket bining
+```bash
+sudo lsof -i :11434
+```
+
 
 
 
