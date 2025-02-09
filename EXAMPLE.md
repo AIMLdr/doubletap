@@ -45,18 +45,12 @@ New profiles: skip
 
 To                         Action      From
 --                         ------      ----
-8484                       ALLOW IN    Anywhere                  
-80/tcp                     ALLOW IN    Anywhere                  
-22/tcp                     ALLOW IN    Anywhere                  
-2200                       ALLOW IN    Anywhere                  
-8000                       ALLOW IN    Anywhere                  
+22/tcp                     ALLOW IN    Anywhere
+22/tcp (v6)                ALLOW IN    Anywhere (v6)             
+80/tcp                     ALLOW IN    Anywhere
+80/tcp (v6)                ALLOW IN    Anywhere (v6)             
 11434                      ALLOW IN    127.0.0.1                 
 11434                      DENY IN     Anywhere                  
-8484 (v6)                  ALLOW IN    Anywhere (v6)             
-80/tcp (v6)                ALLOW IN    Anywhere (v6)             
-22/tcp (v6)                ALLOW IN    Anywhere (v6)             
-2200 (v6)                  ALLOW IN    Anywhere (v6)             
-8000 (v6)                  ALLOW IN    Anywhere (v6)             
 11434 (v6)                 DENY IN     Anywhere (v6)             
 
 127.0.0.1 11434            ALLOW OUT   Anywhere                  
