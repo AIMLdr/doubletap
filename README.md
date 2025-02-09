@@ -6,7 +6,7 @@ DoubleTap is designed to locate, monitor, and manage large language model (LLM) 
 ```txt
 Purpose: Emergency termination of resource-hungry LLM processes and associated services
 Use Case: When local LLMs consume excessive RAM or maintain unwanted network connections
-Kill the llama before it easts all your grass
+Kill the llama before it eats all your grass
 hint: Always monitor htop for resource usage and netstat for open ports
 Maintain proper firewall rules for all AI/ML service ports
 default Ollama port 11434 firewall restricted to localhost from uncompicated firewall
