@@ -375,7 +375,7 @@ if [ "$security_issues" = true ]; then
     fi
 else
     echo -e "\n${GREEN}security check passed${NC}"
-    echo -e "${GREEN}ollama properly restricted to localhost${NC}"
+    echo -e "${GREEN}llama is running inside the firewall restricted to localhost for private interaction${NC}"
 fi
 
 echo -e "\n${GREEN}=== Audit Complete ===${NC}"
