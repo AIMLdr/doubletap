@@ -10,7 +10,10 @@ Kill the llama before it eats all your grass
 hint: Always monitor htop for resource usage and netstat for open ports
 Maintain proper firewall rules for all AI/ML service ports
 ```
-default <a href="http://127.0.0.1:11434/">Ollama port 11434</a> firewall restricted to localhost from uncompicated firewall
+default <a href="http://127.0.0.1:11434/">Ollama port 11434</a> firewall restricted to <a href="http://localhost:11434/">localhost</a> from uncompicated fire wall 
+```bash
+sudo apt install ufw
+```
 ```bash
 # Allow localhost access
 echo -e "${GREEN}Allowing localhost access to port 11434...${NC}"
