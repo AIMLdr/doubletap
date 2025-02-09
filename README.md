@@ -9,7 +9,7 @@ Use Case: When local LLMs consume excessive RAM or maintain unwanted network con
 Kill the llama before it eats all your grass
 hint: Always monitor htop for resource usage and netstat for open ports
 Maintain proper firewall rules for all AI/ML service ports
-default <a href="http://127.0.0.1:11434/">Ollama port 11434</a> firewall restricted to localhost from uncompicated firewall
+default <a href=://"http://127.0.0.1:11434/">Ollama port 11434</a> firewall restricted to localhost from uncompicated firewall
 ```
 ```bash
 # Allow localhost access
