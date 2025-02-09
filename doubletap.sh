@@ -278,4 +278,105 @@ else
 fi
 
 echo -e "${GREEN}=== UFW Configuration Complete ===${NC}"
+#########################################################
+echo -e "${YELLOW}=== Ollama Local Access Audit ===${NC}"
+# Initialize flags
+security_issues=false
+external_access_found=false
+
+
+
+# Get IP addresses
+ip_addresses=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v "127.0.0.1")
+
+# Function to parse and format JSON
+format_json() {
+    echo "$1" | python3 -m json.tool 2>/dev/null || echo "$1"
+}
+
+# Test localhost access
+echo -e "${YELLOW}Testing localhost:11434/api/tags${NC}"
+response=$(curl -s http://localhost:11434/api/tags)
+if [ $? -eq 0 ] && [ ! -z "$response" ]; then
+    echo -e "${GREEN}localhost access successful${NC}"
+    echo -e "${YELLOW}Available models${NC}"
+    format_json "$response"
+else
+    echo -e "${RED}localhost access failed${NC}"
+    security_issues=true
+fi
+
+# Test 127.0.0.1 access
+echo -e "\n${YELLOW}Testing 127.0.0.1:11434/api/tags${NC}"
+response=$(curl -s http://127.0.0.1:11434/api/tags)
+if [ $? -eq 0 ] && [ ! -z "$response" ]; then
+    echo -e "${GREEN}loopback access successful${NC}"
+else
+    echo -e "${RED}loopback access failed${NC}"
+    security_issues=true
+fi
+
+# Test external IP addresses
+echo -e "\n${YELLOW}Testing external IP addresses${NC}"
+blocked_count=0
+total_ips=0
+
+while IFS= read -r ip; do
+    ((total_ips++))
+    echo -e "${YELLOW}Testing $ip:11434/api/tags${NC}"
+    response=$(curl -s --connect-timeout 3 http://$ip:11434/api/tags)
+    if [ $? -eq 0 ] && [ ! -z "$response" ]; then
+        echo -e "${RED}warning external IP $ip has access${NC}"
+        external_access_found=true
+        security_issues=true
+    else
+        ((blocked_count++))
+        echo -e "${GREEN}external IP $ip blocked${NC}"
+    fi
+done <<< "$ip_addresses"
+
+# UFW status check
+ufw_status=$(sudo ufw status verbose)
+if echo "$ufw_status" | grep -q "11434.*ALLOW IN.*Anywhere"; then
+    echo -e "${RED}warning UFW rules allow external access${NC}"
+    security_issues=true
+elif [ $blocked_count -eq $total_ips ] && [ $total_ips -gt 0 ]; then
+    echo -e "${GREEN}all external IPs correctly blocked${NC}"
+fi
+
+# Verify Ollama binding
+netstat_output=$(sudo netstat -tulpn | grep 11434)
+if echo "$netstat_output" | grep -q "0.0.0.0:11434"; then
+    echo -e "${RED}warning Ollama bound to all interfaces${NC}"
+    security_issues=true
+elif echo "$netstat_output" | grep -q "127.0.0.1:11434"; then
+    echo -e "${GREEN}Ollama correctly bound to localhost${NC}"
+fi
+
+# Final security assessment
+if [ "$security_issues" = true ]; then
+    echo -e "\n${RED}Security Issues Detected${NC}"
+    if [ "$external_access_found" = true ]; then
+        echo -e "${RED}external IP access detected configure UFW rules${NC}"
+    fi
+    if echo "$ufw_status" | grep -q "11434.*ALLOW IN.*Anywhere"; then
+        echo -e "${RED}UFW rules too permissive${NC}"
+    fi
+    if echo "$netstat_output" | grep -q "0.0.0.0:11434"; then
+        echo -e "${RED}Ollama daemon configuration needs localhost binding${NC}"
+    fi
+    
+    echo -e "\n${YELLOW}Required Actions${NC}"
+    if [ "$external_access_found" = true ] || echo "$ufw_status" | grep -q "11434.*ALLOW IN.*Anywhere"; then
+        echo -e "${RED}update UFW rules for localhost only${NC}"
+    fi
+    if echo "$netstat_output" | grep -q "0.0.0.0:11434"; then
+        echo -e "${RED}configure Ollama to bind to localhost${NC}"
+    fi
+else
+    echo -e "\n${GREEN}security check passed${NC}"
+    echo -e "${GREEN}ollama properly restricted to localhost${NC}"
+fi
+
+echo -e "\n${GREEN}=== Audit Complete ===${NC}"
 
