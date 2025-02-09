@@ -59,7 +59,7 @@ sudo ufw status verbose | grep 11434
 sudo netstat -tulpn | grep 11434
 ```
 d
-# Verify socket bining
+# Verify socket binding
 ```bash
 sudo lsof -i :11434
 ```
