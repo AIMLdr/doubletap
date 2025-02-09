@@ -61,7 +61,8 @@ cd doubletap && chmod +x doubletap.sh && ./doubletap.sh
 enter a port number within 3 seconds or default :11434<br/>
 requires root privileges for stopping and killing llama<br />
 
-takes liberty with ufw and blocks external llama interaction while maintaining localhost. edit to your specifications
+y/N option for liberty with ufw and blocks external llama interaction while maintaining localhost as default<br />
+edit to your specifications
 
 
 
