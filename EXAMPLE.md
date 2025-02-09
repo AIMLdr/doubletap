@@ -21,10 +21,10 @@ Configuring Ollama UFW rules...
 Configure Ollama for localhost-only access? (y/N) y
 Configuring localhost access rules...
 Existing Ollama port rules found:
-11434                      ALLOW       127.0.0.1                 
+11434                      ALLOW       127.0.0.1
+127.0.0.1 11434            ALLOW OUT   Anywhere                  
 11434                      DENY        Anywhere                  
 11434 (v6)                 DENY        Anywhere (v6)             
-127.0.0.1 11434            ALLOW OUT   Anywhere                  
 11434                      DENY OUT    Anywhere                  
 11434 (v6)                 DENY OUT    Anywhere (v6)             
 Remove existing rules before continuing? (y/N) N
